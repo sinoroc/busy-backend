@@ -1,0 +1,12 @@
+# requirements.txt
+
+
+celery[redis]
+pyramid==1.6a2
+waitress
+
+git+https://github.com/jenner/pyramid_raml@master#egg=pyramid_raml
+dicttoxml
+
+
+# EOF

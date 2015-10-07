@@ -1,0 +1,38 @@
+#%RAML 0.8
+
+---
+
+title: "Busy business API"
+version: "v0.0.0"
+baseUri: http://{apiUri}/{version}
+mediaType: application/json
+protocols: [ HTTP ]
+
+
+/foo:
+    displayName: Foo task
+    get:
+        description: Get task result
+        responses:
+            200:
+                body:
+                    application/json:
+    post:
+        description: Start a new task
+        responses:
+            200:
+                body:
+                    application/json:
+
+
+/allfoos:
+    displayName: Foo tasks
+    post:
+        description: Get status of tasks
+        responses:
+            200:
+                body:
+                    application/json:
+
+
+... # End of file

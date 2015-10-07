@@ -1,0 +1,15 @@
+# .dockerignore
+
+
+Dockerfile
+
+.git/
+.gitignore
+
+.*.swp
+
+*.egg-info/
+__pycache__/
+
+
+# EOF
