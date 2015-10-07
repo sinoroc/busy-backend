@@ -4,6 +4,7 @@
 
 import celery
 import logging
+import pkg_resources
 import pyramid
 import pyramid_raml
 import zope
@@ -126,6 +127,8 @@ def main(dummy_global_config, **settings):
         settings=settings,
     )
 
+    raml_path = pkg_resources.resource_filename(__name__, 'api/api-raml.yaml')
+    config.registry.settings['pyramid_raml.apidef_path'] = raml_path
     config.include('pyramid_raml')
 
     celery_app = celery.Celery('business.tasks', backend='redis://redis')
