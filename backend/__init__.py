@@ -6,7 +6,7 @@ import celery
 import logging
 import pkg_resources
 import pyramid
-import pyramid_raml
+import pyramlson
 import zope
 
 
@@ -21,11 +21,19 @@ def log_request(event):
     return None
 
 
-#@pyramid.events.subscriber(pyramid.events.NewRequest)
-def log_routes(event):
-    intrs = event.request.registry.introspector.get_category('routes', [])
+@pyramid.events.subscriber(pyramid.events.ApplicationCreated)
+def log_resources(event):
+    intrs = event.app.registry.introspector.get_category('routes', [])
     names = [intr['introspectable']['name'] for intr in intrs]
     LOG.error("routes {}".format(names))
+    return None
+
+
+@pyramid.events.subscriber(pyramid.events.ApplicationCreated)
+def log_routes(event):
+    api = event.app.registry.queryUtility(pyramlson.apidef.IRamlApiDefinition)
+    resources = api.get_resources()
+    LOG.error("resources {}".format(resources))
     return None
 
 
@@ -61,14 +69,14 @@ def add_cors_headers_callback(event):
     event.request.add_response_callback(cors_headers)
 
 
-@pyramid_raml.api_service('/foo')
+@pyramlson.api_service('/foo')
 class ThisIsNotFoo(object):
 
     def __init__(self, request):
         self.request = request
         return None
 
-    @pyramid_raml.api_method('get')
+    @pyramlson.api_method('get')
     def rest_foo_get(self):
         async_result_uid = self.request.params['uid']
         celery_app = self.request.registry.queryUtility(ICeleryApp)
@@ -78,7 +86,7 @@ class ThisIsNotFoo(object):
             'result': async_result.get(),
         }
 
-    @pyramid_raml.api_method('post')
+    @pyramlson.api_method('post')
     def rest_foo_post(self):
         arg = self.request.json_body['arg']
         subtask = celery.signature('business.tasks.foo', args=(arg,))
@@ -90,14 +98,14 @@ class ThisIsNotFoo(object):
         }
 
 
-@pyramid_raml.api_service('/allfoos')
+@pyramlson.api_service('/afoos')
 class WhateverFoos(object):
 
     def __init__(self, request):
         self.request = request
         return None
 
-    @pyramid_raml.api_method('post')
+    @pyramlson.api_method('post')
     def rest_foos_post(self):
         status = []
         async_result_uids = self.request.json_body
@@ -128,8 +136,8 @@ def main(dummy_global_config, **settings):
     )
 
     raml_path = pkg_resources.resource_filename(__name__, 'api/api-raml.yaml')
-    config.registry.settings['pyramid_raml.apidef_path'] = raml_path
-    config.include('pyramid_raml')
+    config.registry.settings['pyramlson.apidef_path'] = raml_path
+    config.include('pyramlson')
 
     celery_app = celery.Celery('business.tasks', backend='redis://redis')
     config.registry.registerUtility(celery_app, ICeleryApp)
