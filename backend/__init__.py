@@ -131,6 +131,8 @@ def main(dummy_global_config, **settings):
     """ Make the Pyramid WSGI application.
     """
 
+    settings['backend_url'] = os.environ.get('BACKEND_URL', 'redis://redis')
+
     config = pyramid.config.Configurator(
         settings=settings,
     )
@@ -139,7 +141,10 @@ def main(dummy_global_config, **settings):
     config.registry.settings['pyramlson.apidef_path'] = raml_path
     config.include('pyramlson')
 
-    celery_app = celery.Celery('business.tasks', backend='redis://redis')
+    celery_app = celery.Celery(
+        'business.tasks',
+        backend=settings['backend_url'],
+    )
     config.registry.registerUtility(celery_app, ICeleryApp)
 
     config.scan()
